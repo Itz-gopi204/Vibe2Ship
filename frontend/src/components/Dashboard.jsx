@@ -5,7 +5,7 @@ import {
   AlertOctagon, CheckCircle2, ShieldAlert, Award, 
   MapPin, Clock, ThumbsUp, Flag, RefreshCw, 
   Search, Filter, ChevronDown, ChevronUp, Terminal,
-  TrendingUp
+  TrendingUp, HardHat, Camera, CheckSquare
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -14,12 +14,21 @@ const Dashboard = () => {
     currentUser, 
     verifyIssue, 
     flagIssue, 
-    advanceIssueStatus 
+    advanceIssueStatus,
+    role,
+    isBackendOnline,
+    syncWithBackend
   } = useContext(IssueContext);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [expandedIssueId, setExpandedIssueId] = useState(null);
+
+  // Field Worker specific states
+  const [proofFile, setProofFile] = useState(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditResult, setAuditResult] = useState(null); // { verified: bool, feedback: str }
+  const [activeAuditingId, setActiveAuditingId] = useState(null);
 
   // Statistics calculations
   const activeIssues = issues.filter(i => i.status !== 'Resolved').length;
@@ -44,6 +53,99 @@ const Dashboard = () => {
       case 'High': return 'var(--severity-high)';
       case 'Medium': return 'var(--severity-medium)';
       default: return 'var(--severity-low)';
+    }
+  };
+
+  const handleProofUpload = (e, issueId) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setProofFile(file);
+    setActiveAuditingId(issueId);
+    setAuditResult(null);
+  };
+
+  const submitProof = async (issueId) => {
+    if (!proofFile) return;
+    
+    setIsAuditing(true);
+    setAuditResult(null);
+    setActiveAuditingId(issueId);
+    
+    if (isBackendOnline) {
+      try {
+        const formData = new FormData();
+        formData.append('file', proofFile);
+        
+        const response = await fetch(`/api/issues/${issueId}/resolve`, {
+          method: 'POST',
+          headers: currentUser.geminiKey ? { 'X-Gemini-Key': currentUser.geminiKey } : {},
+          body: formData
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Delay to show auditing spinner
+          await new Promise(resolve => setTimeout(resolve, 1800));
+          
+          const latestHistory = data.history[data.history.length - 1];
+          const isVerified = data.status === 'Resolved';
+          
+          setAuditResult({
+            verified: isVerified,
+            feedback: data.aiResolutionFeedback || latestHistory.message
+          });
+          
+          syncWithBackend();
+          setProofFile(null);
+        } else {
+          setAuditResult({
+            verified: false,
+            feedback: 'Backend API failed to verify completion. Please try again.'
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setAuditResult({
+          verified: false,
+          feedback: 'Network connection failed. Could not reach AI Auditor.'
+        });
+      } finally {
+        setIsAuditing(false);
+      }
+    } else {
+      // Local Fallback simulation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const filename = proofFile.name.toLowerCase();
+      const verified = !filename.includes('fail') && !filename.includes('bad') && !filename.includes('incomplete');
+      const feedback = verified 
+        ? "Simulation validation complete. The uploaded photo confirms resolution. Work site is certified clean."
+        : "Proof evaluation rejected. The image shows remaining structural cracks and surrounding debris. Repair is incomplete.";
+        
+      setAuditResult({ verified, feedback });
+      
+      if (verified) {
+        // Advance issue to Resolved locally
+        await advanceIssueStatus(issueId);
+      }
+      setIsAuditing(false);
+      setProofFile(null);
+    }
+  };
+
+  const claimTask = async (issueId) => {
+    let currentIssue = issues.find(i => i.id === issueId);
+    let currentStatus = currentIssue ? currentIssue.status : 'Reported';
+    
+    // Sequential advances to reach 'In Progress'
+    if (currentStatus === 'Reported') {
+      await advanceIssueStatus(issueId); // Verified
+      await advanceIssueStatus(issueId); // Work Assigned
+      await advanceIssueStatus(issueId); // In Progress
+    } else if (currentStatus === 'Verified') {
+      await advanceIssueStatus(issueId); // Work Assigned
+      await advanceIssueStatus(issueId); // In Progress
+    } else if (currentStatus === 'Work Assigned') {
+      await advanceIssueStatus(issueId); // In Progress
     }
   };
 
@@ -105,7 +207,7 @@ const Dashboard = () => {
           gap: '16px'
         }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-            Civic Issue Reports Feed
+            {role === 'worker' ? 'Municipal Assigned Work Orders' : 'Civic Issue Reports Feed'}
           </h2>
           
           {/* Search and Filters */}
@@ -190,7 +292,7 @@ const Dashboard = () => {
                         
                         <div style={{ display: 'flex', gap: '8px' }}>
                           {/* Simulate State Advance */}
-                          {issue.status !== 'Resolved' && (
+                          {role === 'citizen' && issue.status !== 'Resolved' && (
                             <button 
                               className="btn-action" 
                               onClick={() => advanceIssueStatus(issue.id)}
@@ -211,6 +313,94 @@ const Dashboard = () => {
 
                       <p className="issue-desc">{issue.description}</p>
 
+                      {/* Field Worker Claim & AI Upload controls */}
+                      {role === 'worker' && issue.status === 'In Progress' && (
+                        <div style={{ 
+                          marginTop: '14px', 
+                          background: 'rgba(255,255,255,0.01)', 
+                          padding: '16px', 
+                          borderRadius: '10px', 
+                          border: '1px dashed var(--card-border)' 
+                        }}>
+                          <h5 style={{ fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Camera size={16} style={{ color: 'var(--secondary)' }} />
+                            Claimed Task - Submit Completion Proof
+                          </h5>
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '10px' }}>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={(e) => handleProofUpload(e, issue.id)}
+                              style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}
+                            />
+                            {proofFile && activeAuditingId === issue.id && (
+                              <button 
+                                type="button" 
+                                className="btn-primary" 
+                                onClick={() => submitProof(issue.id)}
+                                style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                              >
+                                Verify & Resolve with AI Auditor
+                              </button>
+                            )}
+                          </div>
+                          
+                          {isAuditing && activeAuditingId === issue.id && (
+                            <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div style={{
+                                border: '2px solid var(--card-border)',
+                                borderTopColor: 'var(--secondary)',
+                                borderRadius: '50%',
+                                width: '14px',
+                                height: '14px',
+                                animation: 'spin 1s infinite linear'
+                              }}></div>
+                              AI Auditor evaluating repair proof image...
+                            </div>
+                          )}
+                          
+                          {auditResult && activeAuditingId === issue.id && (
+                            <div style={{ 
+                              marginTop: '10px', 
+                              padding: '10px', 
+                              borderRadius: '6px', 
+                              fontSize: '0.8rem',
+                              background: auditResult.verified ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                              border: `1px solid ${auditResult.verified ? 'var(--primary)' : '#ef4444'}`,
+                              color: auditResult.verified ? 'var(--primary)' : '#ef4444'
+                            }}>
+                              <strong>{auditResult.verified ? '✔ Certified' : '✘ Re-inspection Needed'}:</strong> {auditResult.feedback}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Display AI resolution proof details if resolved */}
+                      {issue.proofImage && (
+                        <div style={{ 
+                          marginTop: '14px', 
+                          padding: '14px', 
+                          background: 'rgba(16, 185, 129, 0.02)', 
+                          border: '1px solid rgba(16, 185, 129, 0.1)', 
+                          borderRadius: '10px' 
+                        }}>
+                          <h5 style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <CheckSquare size={16} />
+                            ✔ AI Certified Resolution Proof
+                          </h5>
+                          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: '10px' }}>
+                            <img 
+                              src={issue.proofImage} 
+                              alt="Repair Proof" 
+                              style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--card-border)' }} 
+                            />
+                            <div style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                              <strong>Auditor Remarks:</strong> {issue.aiResolutionFeedback || 'Visual verification successful. The hazard has been resolved.'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="issue-card-footer">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -221,20 +411,47 @@ const Dashboard = () => {
                         </div>
 
                         <div className="issue-actions">
-                          <button 
-                            className={`btn-action ${hasVerified ? 'active-verify' : ''}`}
-                            onClick={() => verifyIssue(issue.id)}
-                          >
-                            <ThumbsUp size={14} />
-                            Verify ({issue.upvotes})
-                          </button>
-                          <button 
-                            className={`btn-action ${hasFlagged ? 'active-flag' : ''}`}
-                            onClick={() => flagIssue(issue.id)}
-                          >
-                            <Flag size={14} />
-                            Flag ({issue.flags})
-                          </button>
+                          {role === 'citizen' ? (
+                            <>
+                              <button 
+                                className={`btn-action ${hasVerified ? 'active-verify' : ''}`}
+                                onClick={() => verifyIssue(issue.id)}
+                              >
+                                <ThumbsUp size={14} />
+                                Verify ({issue.upvotes})
+                              </button>
+                              <button 
+                                className={`btn-action ${hasFlagged ? 'active-flag' : ''}`}
+                                onClick={() => flagIssue(issue.id)}
+                              >
+                                <Flag size={14} />
+                                Flag ({issue.flags})
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {issue.status !== 'Resolved' && issue.status !== 'In Progress' && (
+                                <button 
+                                  className="btn-primary"
+                                  onClick={() => claimTask(issue.id)}
+                                  style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                  <HardHat size={14} />
+                                  Claim Task & Start Repair
+                                </button>
+                              )}
+                              {issue.status === 'In Progress' && (
+                                <span style={{ color: 'var(--secondary)', fontSize: '0.8rem', fontWeight: '600' }}>
+                                  Claimed - Repair In Progress
+                                </span>
+                              )}
+                              {issue.status === 'Resolved' && (
+                                <span style={{ color: 'var(--primary)', fontSize: '0.8rem', fontWeight: '600' }}>
+                                  ✔ Repair Verified & Resolved
+                                </span>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

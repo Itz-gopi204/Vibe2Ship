@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const ReportIssue = ({ setActiveTab }) => {
-  const { addIssue, geminiKey } = useContext(IssueContext);
+  const { addIssue, geminiKey, isBackendOnline } = useContext(IssueContext);
   
   // File Upload State
   const [selectedFile, setSelectedFile] = useState(null);
@@ -16,6 +16,7 @@ const ReportIssue = ({ setActiveTab }) => {
   const [isVideo, setIsVideo] = useState(false);
   const fileInputRef = useRef(null);
 
+  // AI & Workflow Loading States
   // AI & Workflow Loading States
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [consoleLogs, setConsoleLogs] = useState([]);
@@ -28,6 +29,8 @@ const ReportIssue = ({ setActiveTab }) => {
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState(12.9344);
   const [longitude, setLongitude] = useState(77.6192);
+  const [department, setDepartment] = useState('');
+  const [dispatchOrder, setDispatchOrder] = useState('');
 
   // Flow step control: 'upload' -> 'analyzing' -> 'review'
   const [flowStep, setFlowStep] = useState('upload');
@@ -83,10 +86,51 @@ const ReportIssue = ({ setActiveTab }) => {
     // 1. Initial log
     addLog('Analyzing file upload visual arrays...', 'info');
 
-    // Start background parallel processes:
-    // a. Call Gemini API for actual details
-    // b. Run step-by-step console simulation logs
-    
+    if (isBackendOnline) {
+      try {
+        addLog('Uploading evidence payload to FastAPI AI Civic agent core...', 'info');
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: geminiKey ? { 'X-Gemini-Key': geminiKey } : {},
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          
+          // Stream logs back to console with realistic speed
+          for (let i = 0; i < result.logs.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
+            addLog(result.logs[i].text, result.logs[i].type);
+          }
+          
+          setTitle(result.title);
+          setCategory(result.category);
+          setSeverity(result.severity);
+          setDescription(result.description);
+          setLatitude(result.latitude);
+          setLongitude(result.longitude);
+          setDepartment(result.department || '');
+          setDispatchOrder(result.dispatch_order || '');
+          
+          setIsAnalyzing(false);
+          setTimeout(() => {
+            setFlowStep('review');
+          }, 1000);
+          return;
+        } else {
+          addLog('FastAPI analyzer returned error response. Falling back to local simulation...', 'warn');
+        }
+      } catch (err) {
+        addLog('Network error connecting to FastAPI analyzer. Falling back to local simulation...', 'warn');
+      }
+    }
+
+    // Local Fallback (Simulation / client-side Direct API call)
     let aiResults = null;
     const aiPromise = analyzeIssueImage(file, geminiKey).then(res => {
       aiResults = res;
@@ -106,6 +150,8 @@ const ReportIssue = ({ setActiveTab }) => {
       setCategory(aiResults.category || 'Road Damage');
       setSeverity(aiResults.severity || 'Medium');
       setDescription(aiResults.description || '');
+      setDepartment(aiResults.department || 'General Civic Infrastructure Command');
+      setDispatchOrder(aiResults.dispatch_order || 'Inspect site visual attachment and repair the hazard immediately.');
     } else {
       addLog('Failed to communicate with AI core. Falling back to default heuristics.', 'warn');
       // Assign default values
@@ -113,6 +159,8 @@ const ReportIssue = ({ setActiveTab }) => {
       setCategory('Road Damage');
       setSeverity('High');
       setDescription('Civic infrastructure requires repair. Please inspect the visual report attachment.');
+      setDepartment('General Civic Infrastructure Command');
+      setDispatchOrder('Inspect site visual attachment and repair the hazard immediately.');
     }
 
     // Auto-generate coordinates centered in Koramangala
@@ -140,7 +188,7 @@ const ReportIssue = ({ setActiveTab }) => {
   const handleSelectLocation = (lat, lng) => {
     setLatitude(lat);
     setLongitude(lng);
-    addLog(`Location override set to coordinates: [${lat.toFixed(5)}, ${lng.toFixed(5)}]`, 'accent');
+    addLog(`Location override set to coordinates: [${lat.toFixed(5)}, [${lng.toFixed(5)}]`, 'accent');
   };
 
   const handleRemoveImage = () => {
@@ -164,7 +212,16 @@ const ReportIssue = ({ setActiveTab }) => {
       isVideo,
       reporter: 'Aarav Patel (You)',
       history: [
-        { status: 'Reported', message: `Issue reported by Aarav Patel. Automated AI dispatch queued.`, time: new Date().toISOString() }
+        { 
+          status: 'Reported', 
+          message: `Issue reported by Aarav Patel. Gemini AI routed ticket to ${department || 'General Civic Infrastructure Command'}.`, 
+          time: new Date().toISOString() 
+        },
+        { 
+          status: 'Work Assigned', 
+          message: `Automated dispatch order drafted: ${dispatchOrder || 'Inspect site visual attachment and repair the hazard immediately.'}`, 
+          time: new Date().toISOString() 
+        }
       ]
     };
 

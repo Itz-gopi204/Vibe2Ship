@@ -102,7 +102,40 @@ export const IssueProvider = ({ children }) => {
     return me || { name: 'Aarav Patel', points: 180, badges: ['reporter-badge', 'verify-badge'], issuesCount: 4, verifiedCount: 7 };
   });
 
-  // Persist states to localStorage
+  const [isBackendOnline, setIsBackendOnline] = useState(false);
+  const [role, setRole] = useState('citizen'); // 'citizen' or 'worker'
+
+  // Sync with Backend
+  const syncWithBackend = async () => {
+    try {
+      const resIssues = await fetch('/api/issues');
+      if (!resIssues.ok) throw new Error('API issue fetch failed');
+      const dataIssues = await resIssues.json();
+      setIssues(dataIssues);
+
+      const resLeader = await fetch('/api/leaderboard');
+      if (!resLeader.ok) throw new Error('API leaderboard fetch failed');
+      const dataLeader = await resLeader.json();
+      setLeaderboard(dataLeader);
+
+      const resProfile = await fetch('/api/profile');
+      if (!resProfile.ok) throw new Error('API profile fetch failed');
+      const dataProfile = await resProfile.json();
+      setCurrentUser(dataProfile);
+
+      setIsBackendOnline(true);
+      console.log('Connected to FastAPI backend successfully.');
+    } catch (e) {
+      console.warn('FastAPI backend offline or unavailable. Running in Local Standalone Mode:', e);
+      setIsBackendOnline(false);
+    }
+  };
+
+  useEffect(() => {
+    syncWithBackend();
+  }, []);
+
+  // Persist states to localStorage (useful as fallback)
   useEffect(() => {
     localStorage.setItem('civic_issues', JSON.stringify(issues));
   }, [issues]);
@@ -124,7 +157,38 @@ export const IssueProvider = ({ children }) => {
   }, [geminiKey]);
 
   // Add a new issue
-  const addIssue = (newIssue) => {
+  const addIssue = async (newIssue) => {
+    if (isBackendOnline) {
+      try {
+        const response = await fetch('/api/issues', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: newIssue.title,
+            description: newIssue.description,
+            category: newIssue.category,
+            severity: newIssue.severity,
+            latitude: newIssue.latitude,
+            longitude: newIssue.longitude,
+            image: newIssue.image,
+            isVideo: newIssue.isVideo,
+            reporter: newIssue.reporter,
+            history: newIssue.history
+          })
+        });
+
+        if (response.ok) {
+          await syncWithBackend();
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to post issue to backend, falling back to local:', err);
+      }
+    }
+
+    // Local Fallback
     const issueWithMeta = {
       id: `issue-${Date.now()}`,
       upvotes: 0,
@@ -163,16 +227,28 @@ export const IssueProvider = ({ children }) => {
 
       return updatedUser;
     });
-
-    return issueWithMeta;
   };
 
   // Upvote/Verify an issue
-  const verifyIssue = (issueId) => {
+  const verifyIssue = async (issueId) => {
+    if (isBackendOnline) {
+      try {
+        const response = await fetch(`/api/issues/${issueId}/verify`, {
+          method: 'POST',
+        });
+        if (response.ok) {
+          await syncWithBackend();
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to verify issue on backend, falling back to local:', err);
+      }
+    }
+
+    // Local Fallback
     setIssues(prev => prev.map(issue => {
       if (issue.id !== issueId) return issue;
       
-      // Toggle upvote (a user can only verify once)
       const userIndex = issue.verifiedBy.indexOf('user-me');
       const hasUpvoted = userIndex !== -1;
       
@@ -180,15 +256,22 @@ export const IssueProvider = ({ children }) => {
       let updatedUpvotes = issue.upvotes;
 
       if (hasUpvoted) {
-        // Remove upvote
         updatedVerifiedBy.splice(userIndex, 1);
         updatedUpvotes = Math.max(0, updatedUpvotes - 1);
+        
+        setCurrentUser(usr => {
+          const updatedPoints = Math.max(0, usr.points - 10);
+          const updatedUser = { ...usr, points: updatedPoints };
+          setLeaderboard(leaders => 
+            leaders.map(l => l.isMe ? { ...l, points: updatedPoints } : l)
+                   .sort((a, b) => b.points - a.points)
+          );
+          return updatedUser;
+        });
       } else {
-        // Add upvote
         updatedVerifiedBy.push('user-me');
         updatedUpvotes += 1;
 
-        // Reward the current user with 10 impact points for verifying civic health
         setCurrentUser(usr => {
           const updatedPoints = usr.points + 10;
           const updatedVerifyCount = usr.verifiedCount + 1;
@@ -205,7 +288,6 @@ export const IssueProvider = ({ children }) => {
             badges: updatedBadges
           };
 
-          // Sync leaderboard
           setLeaderboard(leaders => 
             leaders.map(l => l.isMe ? { ...l, points: updatedPoints, verifiedCount: updatedVerifyCount, badges: updatedBadges } : l)
                    .sort((a, b) => b.points - a.points)
@@ -224,7 +306,22 @@ export const IssueProvider = ({ children }) => {
   };
 
   // Flag/Report inaccurate issue
-  const flagIssue = (issueId) => {
+  const flagIssue = async (issueId) => {
+    if (isBackendOnline) {
+      try {
+        const response = await fetch(`/api/issues/${issueId}/flag`, {
+          method: 'POST',
+        });
+        if (response.ok) {
+          await syncWithBackend();
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to flag issue on backend, falling back to local:', err);
+      }
+    }
+
+    // Local Fallback
     setIssues(prev => prev.map(issue => {
       if (issue.id !== issueId) return issue;
 
@@ -251,7 +348,22 @@ export const IssueProvider = ({ children }) => {
   };
 
   // Simulate issue resolution flow
-  const advanceIssueStatus = (issueId) => {
+  const advanceIssueStatus = async (issueId) => {
+    if (isBackendOnline) {
+      try {
+        const response = await fetch(`/api/issues/${issueId}/advance`, {
+          method: 'POST',
+        });
+        if (response.ok) {
+          await syncWithBackend();
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to advance issue on backend, falling back to local:', err);
+      }
+    }
+
+    // Local Fallback
     const statusSequence = ['Reported', 'Verified', 'Work Assigned', 'In Progress', 'Resolved'];
     
     setIssues(prev => prev.map(issue => {
@@ -303,7 +415,11 @@ export const IssueProvider = ({ children }) => {
       addIssue,
       verifyIssue,
       flagIssue,
-      advanceIssueStatus
+      advanceIssueStatus,
+      isBackendOnline,
+      syncWithBackend,
+      role,
+      setRole
     }}>
       {children}
     </IssueContext.Provider>
