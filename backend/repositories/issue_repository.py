@@ -26,7 +26,9 @@ def parse_issue_row(r):
         "flaggedBy": json.loads(d["flaggedBy"]),
         "history": json.loads(d["history"]),
         "proofImage": d.get("proofImage", "") or "",
-        "aiResolutionFeedback": d.get("aiResolutionFeedback", "") or ""
+        "aiResolutionFeedback": d.get("aiResolutionFeedback", "") or "",
+        "priorityScore": float(d.get("priorityScore", 0.0) or 0.0),
+        "estimatedCompletion": d.get("estimatedCompletion", "") or ""
     }
 
 def get_issues(conn):
@@ -57,12 +59,14 @@ def create_issue(conn, issue):
     history_data = json.dumps([h.dict() for h in issue.history])
     
     cursor.execute(format_query("""
-    INSERT INTO issues (id, title, description, category, severity, status, latitude, longitude, image, isVideo, reporter, upvotes, flags, timestamp, verifiedBy, flaggedBy, history, proofImage, aiResolutionFeedback)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO issues (id, title, description, category, severity, status, latitude, longitude, image, isVideo, reporter, upvotes, flags, timestamp, verifiedBy, flaggedBy, history, proofImage, aiResolutionFeedback, priorityScore, estimatedCompletion)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """), (
         issue_id, issue.title, issue.description, issue.category, issue.severity, "Reported",
         issue.latitude, issue.longitude, issue.image, int(issue.isVideo), issue.reporter,
-        0, 0, timestamp, verified_by, flagged_by, history_data, "", ""
+        0, 0, timestamp, verified_by, flagged_by, history_data, "", "",
+        issue.priorityScore if hasattr(issue, 'priorityScore') else 0.0,
+        issue.estimatedCompletion if hasattr(issue, 'estimatedCompletion') else ""
     ))
     
     # Award points (25 pts for reporting)

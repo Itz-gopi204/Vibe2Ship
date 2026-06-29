@@ -29,7 +29,9 @@ def init_db():
         flaggedBy TEXT,
         history TEXT,
         proofImage TEXT,
-        aiResolutionFeedback TEXT
+        aiResolutionFeedback TEXT,
+        priorityScore REAL,
+        estimatedCompletion TEXT
     )
     """))
     
@@ -53,6 +55,14 @@ def init_db():
         pass
     try:
         cursor.execute(format_query("ALTER TABLE issues ADD COLUMN aiResolutionFeedback TEXT"))
+    except Exception:
+        pass
+    try:
+        cursor.execute(format_query("ALTER TABLE issues ADD COLUMN priorityScore REAL"))
+    except Exception:
+        pass
+    try:
+        cursor.execute(format_query("ALTER TABLE issues ADD COLUMN estimatedCompletion TEXT"))
     except Exception:
         pass
     
@@ -135,12 +145,12 @@ def init_db():
         
         for issue in seed_issues:
             cursor.execute(format_query("""
-            INSERT INTO issues (id, title, description, category, severity, status, latitude, longitude, image, isVideo, reporter, upvotes, flags, timestamp, verifiedBy, flaggedBy, history, proofImage, aiResolutionFeedback)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO issues (id, title, description, category, severity, status, latitude, longitude, image, isVideo, reporter, upvotes, flags, timestamp, verifiedBy, flaggedBy, history, proofImage, aiResolutionFeedback, priorityScore, estimatedCompletion)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """), (
                 issue["id"], issue["title"], issue["description"], issue["category"], issue["severity"], issue["status"],
                 issue["latitude"], issue["longitude"], issue["image"], issue["isVideo"], issue["reporter"], issue["upvotes"],
-                issue["flags"], issue["timestamp"], issue["verifiedBy"], issue["flaggedBy"], issue["history"], "", ""
+                issue["flags"], issue["timestamp"], issue["verifiedBy"], issue["flaggedBy"], issue["history"], "", "", issue.get("priorityScore", 0), issue.get("estimatedCompletion", "")
             ))
             
     cursor.execute(format_query("SELECT COUNT(*) FROM users"))

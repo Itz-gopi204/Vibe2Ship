@@ -33,6 +33,7 @@ const Dashboard = () => {
   // Statistics calculations
   const activeIssues = issues.filter(i => i.status !== 'Resolved').length;
   const resolvedIssues = issues.filter(i => i.status === 'Resolved').length;
+  const highPriorityIssues = issues.filter(i => (i.priorityScore || 0) >= 8).length;
   const impactPoints = currentUser.points;
 
   // Filters
@@ -184,6 +185,16 @@ const Dashboard = () => {
         </div>
 
         <div className="stat-card glass">
+          <div className="stat-icon-wrapper" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+            <TrendingUp size={24} />
+          </div>
+          <div className="stat-info">
+            <h4>High Priority</h4>
+            <p>{highPriorityIssues}</p>
+          </div>
+        </div>
+
+        <div className="stat-card glass">
           <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
             <Clock size={24} />
           </div>
@@ -287,21 +298,10 @@ const Dashboard = () => {
                             <span className="badge badge-status" style={{ border: 'none', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary)' }}>
                               {issue.status}
                             </span>
+                            <span className="badge badge-status" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                              Priority {issue.priorityScore?.toFixed(1) || 0}
+                            </span>
                           </div>
-                        </div>
-                        
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {/* Simulate State Advance */}
-                          {role === 'citizen' && issue.status !== 'Resolved' && (
-                            <button 
-                              className="btn-action" 
-                              onClick={() => advanceIssueStatus(issue.id)}
-                              title="Advance resolving process"
-                            >
-                              <RefreshCw size={14} />
-                              Simulate Action
-                            </button>
-                          )}
                           <button 
                             className="btn-action" 
                             onClick={() => toggleExpand(issue.id)}
@@ -402,12 +402,15 @@ const Dashboard = () => {
                       )}
 
                       <div className="issue-card-footer">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <MapPin size={14} />
                             {issue.latitude.toFixed(4)}, {issue.longitude.toFixed(4)}
                           </span>
                           <span>Reported by: <strong>{issue.reporter}</strong></span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            ETA: <strong>{issue.estimatedCompletion || 'TBD'}</strong>
+                          </span>
                         </div>
 
                         <div className="issue-actions">

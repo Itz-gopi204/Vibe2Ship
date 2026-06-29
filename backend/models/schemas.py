@@ -17,6 +17,8 @@ class IssueCreate(BaseModel):
     isVideo: bool
     reporter: str
     history: List[HistoryEntry]
+    priorityScore: Optional[float] = 0.0
+    estimatedCompletion: Optional[str] = ""
 
 class IssueResponse(BaseModel):
     id: str
@@ -38,6 +40,8 @@ class IssueResponse(BaseModel):
     history: List[HistoryEntry]
     proofImage: Optional[str] = ""
     aiResolutionFeedback: Optional[str] = ""
+    priorityScore: Optional[float] = 0.0
+    estimatedCompletion: Optional[str] = ""
 
 class UserResponse(BaseModel):
     id: str

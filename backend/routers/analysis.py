@@ -110,5 +110,7 @@ async def analyze_file(
         "duplicate_info": duplicate_info,
         "department": department,
         "dispatch_order": dispatch_order,
+        "priorityScore": analysis_res.get("priorityScore", 0.0),
+        "estimatedCompletion": analysis_res.get("estimatedCompletion", ""),
         "image_url": image_url
     }

@@ -24,7 +24,9 @@ const SEED_ISSUES = [
       { status: 'Verified', message: 'AI Civic Agent verified report. Geolocation matches traffic patterns.', time: new Date(Date.now() - 150000000).toISOString() },
       { status: 'Work Assigned', message: 'Dispatched to Department of Transportation (Road Maintenance Div 4).', time: new Date(Date.now() - 120000000).toISOString() },
       { status: 'In Progress', message: 'Maintenance team dispatched. Patch work scheduled.', time: new Date(Date.now() - 86400000).toISOString() }
-    ]
+    ],
+    priorityScore: 9.2,
+    estimatedCompletion: '10 hours'
   },
   {
     id: 'issue-2',
@@ -48,7 +50,9 @@ const SEED_ISSUES = [
       { status: 'Work Assigned', message: 'Dispatched to Electricity Board (Area 2 Grid Operations).', time: new Date(Date.now() - 300000000).toISOString() },
       { status: 'In Progress', message: 'Crew replacing street lamp ballast and check cables.', time: new Date(Date.now() - 250000000).toISOString() },
       { status: 'Resolved', message: 'Bulbs replaced, circuit tested. Streetlights are fully operational.', time: new Date(Date.now() - 172800000).toISOString() }
-    ]
+    ],
+    priorityScore: 6.0,
+    estimatedCompletion: '18 hours'
   },
   {
     id: 'issue-3',
@@ -68,7 +72,9 @@ const SEED_ISSUES = [
     flaggedBy: [],
     history: [
       { status: 'Reported', message: 'Issue registered by Amit Khare. Multimodal analysis confirms commercial waste.', time: new Date(Date.now() - 10800000).toISOString() }
-    ]
+    ],
+    priorityScore: 9.5,
+    estimatedCompletion: '8 hours'
   }
 ];
 
@@ -175,7 +181,9 @@ export const IssueProvider = ({ children }) => {
             image: newIssue.image,
             isVideo: newIssue.isVideo,
             reporter: newIssue.reporter,
-            history: newIssue.history
+            history: newIssue.history,
+            priorityScore: newIssue.priorityScore ?? 0.0,
+            estimatedCompletion: newIssue.estimatedCompletion ?? ''
           })
         });
 

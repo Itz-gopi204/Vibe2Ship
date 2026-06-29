@@ -31,6 +31,8 @@ const ReportIssue = ({ setActiveTab }) => {
   const [longitude, setLongitude] = useState(77.6192);
   const [department, setDepartment] = useState('');
   const [dispatchOrder, setDispatchOrder] = useState('');
+  const [priorityScore, setPriorityScore] = useState(0.0);
+  const [estimatedCompletion, setEstimatedCompletion] = useState('');
 
   // Flow step control: 'upload' -> 'analyzing' -> 'review'
   const [flowStep, setFlowStep] = useState('upload');
@@ -116,6 +118,8 @@ const ReportIssue = ({ setActiveTab }) => {
           setLongitude(result.longitude);
           setDepartment(result.department || '');
           setDispatchOrder(result.dispatch_order || '');
+          setPriorityScore(result.priorityScore ?? 0.0);
+          setEstimatedCompletion(result.estimatedCompletion || '');
           
           setIsAnalyzing(false);
           setTimeout(() => {
@@ -152,6 +156,8 @@ const ReportIssue = ({ setActiveTab }) => {
       setDescription(aiResults.description || '');
       setDepartment(aiResults.department || 'General Civic Infrastructure Command');
       setDispatchOrder(aiResults.dispatch_order || 'Inspect site visual attachment and repair the hazard immediately.');
+      setPriorityScore(aiResults.priorityScore ?? 0.0);
+      setEstimatedCompletion(aiResults.estimatedCompletion || '');
     } else {
       addLog('Failed to communicate with AI core. Falling back to default heuristics.', 'warn');
       // Assign default values
@@ -211,6 +217,8 @@ const ReportIssue = ({ setActiveTab }) => {
       image: previewUrl || 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=600',
       isVideo,
       reporter: 'Aarav Patel (You)',
+      priorityScore,
+      estimatedCompletion,
       history: [
         { 
           status: 'Reported', 
@@ -398,6 +406,31 @@ const ReportIssue = ({ setActiveTab }) => {
                 required 
                 style={{ resize: 'none', fontFamily: 'inherit' }}
               />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Priority Score</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={priorityScore}
+                  min={1}
+                  max={10}
+                  step={0.5}
+                  onChange={(e) => setPriorityScore(parseFloat(e.target.value) || 0)}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Estimated Completion</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={estimatedCompletion}
+                  onChange={(e) => setEstimatedCompletion(e.target.value)}
+                  placeholder="e.g. 12 hours"
+                />
+              </div>
             </div>
 
             <div style={{ marginTop: '12px', display: 'flex', gap: '16px' }}>

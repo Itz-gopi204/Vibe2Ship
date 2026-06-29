@@ -76,8 +76,8 @@ export const analyzeIssueImage = async (imageFile, apiKey) => {
       - "title": A short, descriptive title of what is broken (max 6 words)
       - "description": A concise, clear explanation of the hazard and why it needs repair.
       - "department": Recommend the specific local municipal department routed to handle this issue (be detailed and specific).
-      - "dispatch_order": Generate a brief dispatch order containing crew instructions (e.g. required crew size, tools, safety measures).
-      
+      - "dispatch_order": Generate a brief dispatch order containing crew instructions (e.g. required crew size, tools, safety measures).      - "priorityScore": Provide a numeric priority score from 1.0 to 10.0, where higher means more urgent.
+      - "estimatedCompletion": Provide a short estimated resolution time in plain text (e.g. "12 hours", "2 days", "4 hours").      
       Output ONLY the raw JSON. Do not write markdown tags (e.g. \`\`\`json) or extra text.`;
 
       const result = await model.generateContent([prompt, imagePart]);
@@ -104,7 +104,9 @@ export const analyzeIssueImage = async (imageFile, apiKey) => {
       title: 'Pothole on Main Road',
       description: 'A deep pothole in the middle of the road causing cars to veer. Safety hazard for motorbikes.',
       department: 'Department of Public Works (Roads Division)',
-      dispatch_order: 'Road maintenance crew of 4 dispatched with asphalt patcher, warning signs, and rollers. Patch pothole and test compaction.'
+      dispatch_order: 'Road maintenance crew of 4 dispatched with asphalt patcher, warning signs, and rollers. Patch pothole and test compaction.',
+      priorityScore: 9.0,
+      estimatedCompletion: '12 hours'
     };
   } else if (fileName.includes('trash') || fileName.includes('garbage') || fileName.includes('bin') || fileName.includes('waste')) {
     return {
@@ -131,7 +133,9 @@ export const analyzeIssueImage = async (imageFile, apiKey) => {
       title: 'Cracked Pipe Water Leak',
       description: 'Fresh water leaking from a crack in the mains, flooding the sidewalk and wasting water.',
       department: 'Water Supply & Sewerage Board',
-      dispatch_order: 'Plumbing response unit of 3 dispatched with pipe clamps, excavation machinery, and sealants. Patch main pipe leak.'
+      dispatch_order: 'Plumbing response unit of 3 dispatched with pipe clamps, excavation machinery, and sealants. Patch main pipe leak.',
+      priorityScore: 8.5,
+      estimatedCompletion: '14 hours'
     };
   }
 
@@ -171,5 +175,10 @@ export const analyzeIssueImage = async (imageFile, apiKey) => {
     }
   ];
 
-  return mockOptions[Math.floor(Math.random() * mockOptions.length)];
+  const randomResult = mockOptions[Math.floor(Math.random() * mockOptions.length)];
+  return {
+    ...randomResult,
+    priorityScore: randomResult.severity === 'High' ? 8.0 : randomResult.severity === 'Critical' ? 9.0 : 6.0,
+    estimatedCompletion: randomResult.severity === 'Critical' ? '8 hours' : randomResult.severity === 'High' ? '12 hours' : '1 day'
+  };
 };

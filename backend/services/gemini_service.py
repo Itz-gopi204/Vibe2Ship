@@ -42,6 +42,8 @@ async def analyze_evidence(file_contents: bytes, mime_type: str, filename: str, 
     description = "Civic infrastructure requires repair. Please inspect the visual report attachment."
     department = "Department of Public Works (Roads Division)"
     dispatch_order = "Road maintenance crew of 4 dispatched with asphalt patcher, warning signs, and rollers."
+    priorityScore = 8.0
+    estimatedCompletion = "12 hours"
     
     ai_success = False
     
@@ -56,6 +58,8 @@ async def analyze_evidence(file_contents: bytes, mime_type: str, filename: str, 
             - "description": A concise, clear explanation of the hazard and why it needs repair.
             - "department": Recommend the specific local municipal division/department routed to handle this issue (be detailed and specific).
             - "dispatch_order": Generate a brief dispatch order containing crew instructions (e.g. required crew size, tools, safety measures).
+            - "priorityScore": Provide a numeric priority score from 1.0 to 10.0, where higher means more urgent.
+            - "estimatedCompletion": Provide a short estimated resolution time in plain text (e.g. "12 hours", "2 days", "4 hours").
             
             Output ONLY the raw JSON. Do not write markdown tags (e.g. ```json) or extra text."""
             
@@ -91,6 +95,8 @@ async def analyze_evidence(file_contents: bytes, mime_type: str, filename: str, 
                     description = gemini_data.get("description", description)
                     department = gemini_data.get("department", department)
                     dispatch_order = gemini_data.get("dispatch_order", dispatch_order)
+                    priorityScore = float(gemini_data.get("priorityScore", priorityScore) or priorityScore)
+                    estimatedCompletion = gemini_data.get("estimatedCompletion", estimatedCompletion)
                     ai_success = True
         except Exception as e:
             print(f"Gemini analysis service error: {e}")
@@ -114,6 +120,8 @@ async def analyze_evidence(file_contents: bytes, mime_type: str, filename: str, 
         description = sel['description']
         department = sel['department']
         dispatch_order = sel['dispatch_order']
+        priorityScore = 9.0 if severity == 'High' else 6.0
+        estimatedCompletion = '12 hours' if severity in ['Critical', 'High'] else '1 day'
         
     return {
         "title": title,
@@ -122,6 +130,8 @@ async def analyze_evidence(file_contents: bytes, mime_type: str, filename: str, 
         "description": description,
         "department": department,
         "dispatch_order": dispatch_order,
+        "priorityScore": priorityScore,
+        "estimatedCompletion": estimatedCompletion,
         "ai_success": ai_success
     }
 

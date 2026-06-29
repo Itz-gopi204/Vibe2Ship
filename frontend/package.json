@@ -13,14 +13,15 @@
     "@google/generative-ai": "^0.24.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.21.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "vibe2ship-civic-copilot": "file:.."
   },
   "devDependencies": {
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@types/react": "^18.3.4",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.0.4",
     "oxlint": "^1.69.0",
-    "vite": "^8.1.0"
+    "vite": "^4.4.9"
   }
 }
