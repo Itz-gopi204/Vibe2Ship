@@ -55,7 +55,7 @@ FastAPI powers the backend with:
 - REST endpoints for issue CRUD and verification,
 - image upload analysis and resolution proof handling,
 - a repository-pattern database layer,
-- flexible storage using PostgreSQL with an automatic SQLite fallback.
+- flexible storage using MongoDB with an automatic SQLite fallback.
 
 ### AI Integration
 Google Gemini is used for:
@@ -153,8 +153,8 @@ Data flows through:
 
 ### Backend Components
 - `backend/main.py`: initializes FastAPI and routes.
-- `backend/database/connection.py`: abstracts PostgreSQL/SQLite syntax.
-- `backend/database/setup.py`: defines tables, auto-migration, and seed data.
+- `backend/database/connection.py`: abstracts MongoDB/SQLite connectivity.
+- `backend/database/setup.py`: defines collections, auto-migration, and seed data.
 - `backend/models/schemas.py`: validates requests/responses with Pydantic.
 - `backend/repositories/issue_repository.py`: manages ticket lifecycle and history.
 - `backend/services/gemini_service.py`: builds prompts and handles Gemini interactions.
@@ -176,7 +176,7 @@ Data flows through:
 ### Resilience and Fallbacks
 - If the FastAPI backend or Gemini API is unavailable, the frontend continues to operate in local simulation mode.
 - `localStorage` persists issue state, user profile, and API key preferences.
-- The backend supports SQLite auto-migration for environments without PostgreSQL.
+- The backend supports SQLite auto-migration for environments without MongoDB.
 
 ---
 
@@ -196,7 +196,8 @@ npm run install:all
 2. Create `.env` from `.env.example` and configure:
 ```env
 VITE_GEMINI_API_KEY=your_gemini_api_key
-SUPABASE_DB_URL=your_postgresql_uri
+MONGODB_URI=your_mongodb_uri
+MONGODB_DB_NAME=vibe2ship
 ```
 3. Start the application:
 ```bash
@@ -212,7 +213,7 @@ npm run build --prefix frontend
 ---
 
 ## 8. Deployment Considerations
-- Use a managed PostgreSQL or Supabase database for persistence.
+- Use a managed MongoDB cluster or Atlas database for persistence.
 - Host the backend on services like **Railway**, **Fly.io**, or **Heroku**.
 - Serve the frontend from **Vercel**, **Netlify**, or **Firebase Hosting**.
 - Ensure the Gemini API key is stored securely in environment variables.

@@ -2,7 +2,7 @@
 
 A premium, dark-themed, glassmorphic civic collaboration platform designed to empower citizens to identify, report, and track hyperlocal municipal issues, and enable municipal field crews to claim work orders and submit visual completion proofs audited by **Google Gemini 1.5 Flash**.
 
-Built as a decoupled frontend-backend application using **React SPA (Vite)** and a modular **FastAPI** backend supporting **Supabase Cloud PostgreSQL** with persistent local **SQLite** auto-migration fallbacks.
+Built as a decoupled frontend-backend application using **React SPA (Vite)** and a modular **FastAPI** backend supporting **MongoDB** with persistent local **SQLite** auto-migration fallbacks.
 
 ---
 
@@ -19,7 +19,7 @@ sequenceDiagram
     actor Citizen
     participant FE as React Frontend (Vite)
     participant BE as FastAPI Backend
-    participant DB as Supabase PostgreSQL
+    participant DB as MongoDB
     participant AI as Gemini 1.5 Flash
 
     Citizen->>FE: Upload hazard photo/video
@@ -50,7 +50,7 @@ sequenceDiagram
     actor Worker as Field Worker
     participant FE as React Frontend
     participant BE as FastAPI Backend
-    participant DB as Supabase PostgreSQL
+    participant DB as MongoDB
     participant AI as Gemini 1.5 Flash
 
     Worker->>FE: Toggle to Field Worker role
@@ -82,8 +82,8 @@ sequenceDiagram
 Vibe2Ship/
 ├── backend/                       # FastAPI Application
 │   ├── database/                  # Connection managers & schemas setup
-│   │   ├── connection.py          # Handles postgresql/sqlite parameter formats
-│   │   └── setup.py               # Table creations & database seed injections
+│   │   ├── connection.py          # Handles MongoDB/SQLite connectivity
+│   │   └── setup.py               # Collection creation & database seed injections
 │   ├── models/                    # Pydantic validation models
 │   │   └── schemas.py             # Issue and User schemas
 │   ├── repositories/              # DB operations layer (CRUD queries)
@@ -107,7 +107,7 @@ Vibe2Ship/
 │   │   └── index.css              # Custom styled design system
 │   ├── package.json               # Frontend package manager manifest
 │   └── vite.config.js             # Vite configuration with proxy configurations
-├── .env                           # Project credentials (Supabase DB URL & Gemini API Key)
+├── .env                           # Project credentials (MongoDB URI & Gemini API Key)
 ├── package.json                   # Root concurrently script configurations
 └── README.md                      # General documentation
 ```
@@ -133,10 +133,11 @@ Create a `.env` file in the root of the project (template provided in `.env.exam
 # Google AI Studio Gemini API Key
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
 
-# Supabase connection URI
-# Example: postgresql://postgres:password@db.yourprojectref.supabase.co:5432/postgres
+# MongoDB connection URI
+# Example: mongodb+srv://user:password@cluster0.mongodb.net/vibe2ship?retryWrites=true&w=majority
 # Leave empty to automatically fall back to local SQLite "civic_hero.db"
-SUPABASE_DB_URL=your_supabase_postgresql_uri_here
+MONGODB_URI=your_mongodb_uri_here
+MONGODB_DB_NAME=vibe2ship
 ```
 
 ### 4. Start Development Servers

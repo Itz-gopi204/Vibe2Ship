@@ -1,24 +1,25 @@
 import os
 import sys
-import psycopg2
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
 
 import config
+from pymongo import MongoClient
 
 if __name__ == "__main__":
-    url = config.DB_URL
-    if not url:
-        print('No DB_URL configured. Set SUPABASE_DB_URL, DATABASE_URL, or DB_URL in environment.')
+    uri = config.MONGODB_URI
+    if not uri:
+        print('No MongoDB URI configured. Set MONGODB_URI in environment.')
         raise SystemExit(1)
 
-    print('Using DB_URL:', url)
+    print('Using MONGODB_URI:', uri)
     try:
-        conn = psycopg2.connect(url)
-        conn.close()
-        print('Supabase DB connection succeeded.')
+        client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping')
+        client.close()
+        print('MongoDB connection succeeded.')
     except Exception as ex:
-        print('Supabase DB connection failed:')
+        print('MongoDB connection failed:')
         print(type(ex).__name__ + ':', ex)
         raise SystemExit(1)

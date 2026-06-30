@@ -1,21 +1,30 @@
 import sqlite3
 import config
 
-def format_query(q: str) -> str:
-    if config.IS_POSTGRES:
-        return q.replace("?", "%s")
-    return q
+
+class MongoDBConnection:
+    def __init__(self, db, client):
+        self.db = db
+        self._client = client
+
+    def close(self):
+        if self._client:
+            self._client.close()
+
 
 def get_db():
-    if config.IS_POSTGRES:
-        import psycopg2
-        from psycopg2.extras import DictCursor
+    if config.IS_MONGODB:
         try:
-            return psycopg2.connect(config.DB_URL, cursor_factory=DictCursor)
+            from pymongo import MongoClient
+            client = MongoClient(config.MONGODB_URI, serverSelectionTimeoutMS=5000)
+            db = client[config.MONGODB_DB_NAME]
+            db.command("ping")
+            return MongoDBConnection(db, client)
         except Exception as e:
-            print(f"Postgres connection failed using DB_URL='{config.DB_URL}': {e}")
-            raise
-    else:
-        conn = sqlite3.connect(config.DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
+            print(f"MongoDB connection failed using MONGODB_URI='{config.MONGODB_URI}': {e}")
+            print("Falling back to local SQLite.")
+            config.IS_MONGODB = False
+
+    conn = sqlite3.connect(config.DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
