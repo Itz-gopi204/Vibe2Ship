@@ -1,8 +1,8 @@
 import os
 
 def load_env():
-    # Look for .env in current and parent directory
-    for path in ['.env', '../.env']:
+    # Look for .env and .env.local in current and parent directory
+    for path in ['.env', '.env.local', '../.env', '../.env.local']:
         if os.path.exists(path):
             try:
                 with open(path, 'r') as f:
@@ -17,7 +17,7 @@ def load_env():
 
 load_env()
 
-DB_URL = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL")
+DB_URL = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL") or os.environ.get("DB_URL")
 IS_POSTGRES = DB_URL is not None and DB_URL.strip() != ""
 DB_PATH = "civic_hero.db"
 GEMINI_API_KEY = os.environ.get("VITE_GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
