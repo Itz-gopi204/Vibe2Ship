@@ -2,6 +2,13 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { IssueContext } from '../context/IssueContext';
 import { analyzeIssueImage, runAgenticWorkflow } from '../utils/gemini';
 import IssueMap from './IssueMap';
+
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = rawApiBaseUrl.replace(/\/+$/, '');
+const apiFetch = (path, options = {}) => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return fetch(`${API_BASE_URL}${normalizedPath}`, options);
+};
 import { 
   UploadCloud, AlertTriangle, Cpu, Globe, 
   MapPin, CheckCircle2, ChevronRight, X 
@@ -95,7 +102,7 @@ const ReportIssue = ({ setActiveTab }) => {
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await fetch('/api/analyze', {
+        const response = await apiFetch('/api/analyze', {
           method: 'POST',
           headers: geminiKey ? { 'X-Gemini-Key': geminiKey } : {},
           body: formData

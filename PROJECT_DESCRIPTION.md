@@ -1,232 +1,278 @@
 # Project Submission Description: Community Hero - Civic AI Co-Pilot
 
-This document is the end-to-end project description for Vibe2Ship’s Civic AI Co-Pilot application. It covers the problem statement, solution, architecture, features, user journeys, technical implementation, deployment, and future enhancements.
+This document is the end-to-end project description for Vibe2Ship’s Civic AI Co-Pilot application. It explains the problem, the product solution, user roles, architecture, technical implementation, and the complete set of included features.
 
 ---
 
-## 1. Problem Statement
-Local communities struggle to report, validate, and resolve civic infrastructure issues effectively. Existing channels are often:
-- fragmented across apps and government portals,
-- slow to provide feedback,
-- lacking trust and verification,
-- without clear tracking of issue resolution,
-- difficult for citizens to know which department owns the work.
+## 1. Project Vision
+Community Hero transforms local infrastructure reporting into a trusted, AI-supported civic workflow.
+The platform is designed for two primary audiences:
+- **Citizens** who want to report issues quickly and see follow-up progress.
+- **Field workers and municipal teams** who need verified evidence, better dispatch, and AI audit confidence.
 
-### Selected Challenge
-Community Hero addresses the hyperlocal infrastructure problem by enabling citizens to report hazards such as:
-- road potholes,
-- overflowing garbage,
-- damaged streetlights,
-- water leaks and blocked drains.
-
-The goal is to unify reporting, verification, tracking, and resolution into one AI-powered civic co-pilot.
+This app combines modern web UI, AI analysis, and a scalable backend to make civic issue resolution more transparent and effective.
 
 ---
 
-## 2. Solution Summary
-**Community Hero** is a full-stack civic collaboration platform that empowers citizens and field workers with AI-assisted workflows.
-It includes:
-- multimodal **image/video reporting**,
-- AI-driven **issue categorization and severity scoring**,
-- **geo-location mapping** with interactive coordinate selection,
-- **community verification** through upvotes and flags,
-- **field worker task assignment** and real-time status tracking,
-- **AI resolution proof auditing**,
-- gamified community points and badges,
-- AI-powered **predictive infrastructure insights**.
+## 2. Problem Statement
+Most civic reporting systems suffer from slow response, fragmented tools, and low trust.
+Common issues in local infrastructure reporting include:
+- reports scattered across different portals,
+- little context for municipal departments,
+- no community verification layer,
+- few controls for proof of repair,
+- unclear ownership and status tracking.
 
-This solution bridges citizen reports and municipal response using a reactive frontend and a resilient backend.
+### 2.1 Challenge Scope
+Community Hero focuses on hyperlocal infrastructure issues, including:
+- potholes,
+- streetlight failures,
+- overflowing trash,
+- storm drain blockages,
+- sidewalk damage,
+- water leaks.
 
----
-
-## 3. End-to-End Architecture
-
-### Frontend
-Built as a React SPA with Vite, the frontend provides:
-- a responsive dark-themed dashboard,
-- an AI evidence upload console,
-- issue list cards with expandable timelines,
-- live map location selection,
-- role switching between **Citizen** and **Field Worker**,
-- gamification and leaderboard.
-
-### Backend
-FastAPI powers the backend with:
-- REST endpoints for issue CRUD and verification,
-- image upload analysis and resolution proof handling,
-- a repository-pattern database layer,
-- flexible storage using MongoDB with an automatic SQLite fallback.
-
-### AI Integration
-Google Gemini is used for:
-- multimodal classification of uploaded civic evidence,
-- automated title/description generation,
-- department routing and dispatch order drafting,
-- completion proof audit and verification feedback.
-
-### Data Persistence
-Data flows through:
-- persistent database tables for issues and users,
-- local cache fallback via `localStorage` for offline-friendly operation,
-- seeded initial issues for demo readiness.
+### 2.2 Desired Outcome
+The product aims to:
+- simplify citizen reporting,
+- automate issue classification,
+- provide clear role-based workflows,
+- enable community validation,
+- offer AI-backed repair verification,
+- and make the entire process auditable and accountable.
 
 ---
 
-## 4. Core Features
+## 3. What the Solution Includes
+Community Hero is built as a complete full-stack product with the following components:
 
-### 4.1 AI-Powered Issue Reporting
-- Citizens upload a photo or video of a hazard.
-- The system analyzes the media using Gemini.
-- Results auto-fill the report form with:
-  - category,
-  - severity,
-  - title,
-  - description,
-  - recommended department,
-  - dispatch order,
-  - priority score,
-  - estimated completion time.
+### 3.1 Core Application Areas
+- **Visual issue reporting** with image/video upload,
+- **AI-assisted report generation** using Google Gemini,
+- **Geo-location and interactive mapping** for exact issue placement,
+- **Community verification** through upvotes and flags,
+- **Field worker task management** with status progression,
+- **AI repair proof audit** using evidence validation,
+- **Gamification** via points and leaderboard,
+- **Analytics dashboard** for live civic metrics.
 
-### 4.2 Geo-Location and Mapping
-- Reporters receive a default geotag from the analysis flow.
-- Leaflet map allows precise coordinate adjustments.
-- Issues are displayed with map markers and location summaries.
-
-### 4.3 Community Verification and Moderation
-- Citizens can verify issues using upvotes.
-- They can flag questionable reports for review.
-- Verified issues strengthen trust and trigger progress tracking.
-
-### 4.4 Role-Based Workflow
-- **Citizen Role**: report hazards, verify issues, track resolution status.
-- **Field Worker Role**: claim tasks, advance work status, upload completion proof.
-
-### 4.5 AI Resolution Proof Audit
-- Workers upload a photo showing completed repair.
-- The backend routes the proof to Gemini for verification.
-- If verified, the issue status updates to **Resolved**.
-- If rejected, the issue returns to **In Progress** with audit feedback.
-
-### 4.6 Impact Dashboard and Predictive Insights
-- The dashboard displays live metrics:
-  - active issue count,
-  - resolved issue count,
-  - high-priority issues,
-  - community impact points.
-- The AI insights sidebar presents predictive alerts for infrastructure risks.
-
-### 4.7 Gamification and Community Engagement
-- Users earn points for reporting and verifying issues.
-- Leaderboard tracks top contributors.
-- Badges reward engagement and verification milestones.
+### 3.2 Technical Stack
+- Frontend: **React** with **Vite**, styled for a modern dark theme.
+- Backend: **FastAPI** with modular router and repository layers.
+- Database: **MongoDB** as the primary store, with **SQLite** fallback for local dev.
+- AI: **Google Gemini** for multimodal classification and audit review.
 
 ---
 
-## 5. User Journeys
+## 4. Detailed Feature Breakdown
 
-### Journey 1: Citizen Reporting a New Issue
-1. Switch to **Citizen** role.
-2. Upload an image or video of a civic hazard.
-3. Watch the AI console log analysis and classification.
-4. Review and refine the auto-filled report.
-5. Place or adjust the map pin for exact location.
-6. Submit the issue and earn community points.
+### 4.1 Visual Issue Reporting
+Citizens can submit a new hazard report with only an uploaded photo or video.
+The report flow includes:
+- image/video capture,
+- automatic AI-considered title and description,
+- category and severity inference,
+- department routing suggestions,
+- priority and estimated completion guidance,
+- mapping the issue to an exact location.
 
-### Journey 2: Community Verification
-1. Browse reported issues in the dashboard.
-2. Read issue cards and inspection logs.
-3. Upvote valid reports to verify them.
-4. Flag incorrect or duplicate reports.
-5. The system updates the issue status and trust signals.
+### 4.2 AI-Powered Pre-Fill and Classification
+Google Gemini analyzes visual evidence and returns structured metadata:
+- issue category,
+- severity score,
+- concise title,
+- descriptive summary,
+- recommended department,
+- dispatch directive,
+- internal priority score.
 
-### Journey 3: Field Worker Repair and Audit
-1. Switch to **Field Worker** mode.
-2. Claim an assignment from the active issue list.
-3. Advance the workflow to **In Progress**.
-4. Upload a repair proof image after work completion.
-5. Trigger the AI audit and receive verification feedback.
-6. View the resolved issue with a certified proof badge.
+This dramatically reduces the amount of manual form input required from the user.
+
+### 4.3 Geo-Location and Mapping
+The frontend integrates a map-based coordinate selector.
+Key map features include:
+- default geotag from the upload flow,
+- draggable pin placement,
+- visible issue markers,
+- location summaries on each ticket card.
+
+### 4.4 Community Verification and Moderation
+Citizen verification is built into the issue lifecycle.
+Users can:
+- upvote issues to confirm legitimacy,
+- flag duplicates or incorrect submissions,
+- view verification history and trust scores.
+
+This layer improves data quality and prevents unnecessary work.
+
+### 4.5 Role-Based Workflow
+The platform supports two main roles:
+- **Citizen**: reports hazards, verifies issues, and tracks outcomes.
+- **Field Worker**: views assigned tasks, advances issue status, and submits proof of repair.
+
+The UI adapts to each role with role-specific actions and task lists.
+
+### 4.6 AI Resolution Proof Audit
+When a worker submits a repair proof image, the backend uses Gemini to verify the evidence.
+The audit process includes:
+- comparing proof imagery to the original issue,
+- generating verification feedback,
+- updating the ticket to **Resolved** if proof is confirmed,
+- or returning the issue to **In Progress** if the proof is insufficient.
+
+This creates an AI-backed certification layer for completed work.
+
+### 4.7 Dashboard and Insights
+The dashboard provides live metrics and civic insights:
+- total active issues,
+- resolved issue count,
+- high-priority hazards,
+- community contribution points,
+- team assignments and backlog status.
+
+It also surfaces predictive risk signals based on AI analysis.
+
+### 4.8 Gamification and Engagement
+Community Hero rewards participation with:
+- points for reporting issues,
+- points for verifying and flagging issues,
+- a public leaderboard for top contributors,
+- badges for sustained engagement.
+
+This encourages sustained civic involvement.
 
 ---
 
-## 6. Technical Implementation Details
+## 5. Architecture and Implementation
 
-### Backend Components
-- `backend/main.py`: initializes FastAPI and routes.
-- `backend/database/connection.py`: abstracts MongoDB/SQLite connectivity.
-- `backend/database/setup.py`: defines collections, auto-migration, and seed data.
-- `backend/models/schemas.py`: validates requests/responses with Pydantic.
-- `backend/repositories/issue_repository.py`: manages ticket lifecycle and history.
-- `backend/services/gemini_service.py`: builds prompts and handles Gemini interactions.
-- `backend/routers/analysis.py`: processes file uploads for AI pre-fill.
-- `backend/routers/issues.py`: implements issue management and proof validation.
+### 5.1 Frontend Architecture
+The frontend is a React application built with Vite.
+Important modules include:
+- `frontend/src/components/Dashboard.jsx` — the main issue and analytics UI,
+- `frontend/src/components/ReportIssue.jsx` — issue creation, AI prefill, and map editing,
+- `frontend/src/components/IssueMap.jsx` — geographic issue visualization,
+- `frontend/src/components/Leaderboard.jsx` — community scoring and ranking,
+- `frontend/src/context/IssueContext.jsx` — global state management and backend communication.
 
-### Frontend Components
-- `frontend/src/components/ReportIssue.jsx`: AI upload console, review form, and map editor.
-- `frontend/src/components/Dashboard.jsx`: issue feed, metrics, role-specific actions, and predictive insights.
-- `frontend/src/context/IssueContext.jsx`: shared state, backend sync, local fallback, and issue management.
-- `frontend/src/utils/gemini.js`: Gemini demand generation and fallback simulation.
-- `frontend/vite.config.js`: development proxy to backend API.
+The frontend connects to the backend using the `/api` proxy routes configured in `vite.config.js`.
 
-### AI Prompt Strategy
-- Gemini is prompted to return structured JSON with keys for category, severity, title, description, department, dispatch order, priority score, and estimated completion.
-- The application handles malformed responses gracefully by falling back to simulated defaults.
-- Visual audit proof uses text comparisons and verification logging.
+### 5.2 Backend Architecture
+FastAPI hosts the backend with clear separation of concerns:
+- `backend/main.py` boots the app and mounts routers,
+- `backend/routers/issues.py` handles issue lifecycle operations,
+- `backend/routers/analysis.py` manages media uploads and AI classification,
+- `backend/routers/users.py` provides leaderboard and profile endpoints.
 
-### Resilience and Fallbacks
-- If the FastAPI backend or Gemini API is unavailable, the frontend continues to operate in local simulation mode.
-- `localStorage` persists issue state, user profile, and API key preferences.
-- The backend supports SQLite auto-migration for environments without MongoDB.
+The backend also includes:
+- `backend/models/schemas.py` for request/response validation,
+- `backend/repositories/issue_repository.py` for database operations,
+- `backend/repositories/user_repository.py` for score and profile handling,
+- `backend/services/gemini_service.py` for AI prompt creation and response parsing.
+
+### 5.3 Database Design
+Primary persistence is handled by MongoDB using collections for:
+- `issues`,
+- `users`,
+- `activity` or `audit logs`.
+
+A local SQLite fallback is supported, allowing the project to run without a MongoDB instance in development.
+
+### 5.4 AI Integration Strategy
+The AI service is integrated via Gemini with the following patterns:
+- multimodal evidence classification for new reports,
+- structured output parsing for data consistency,
+- repair proof verification and feedback generation,
+- fallback handling for incomplete AI responses.
+
+### 5.5 Environment and Configuration
+The project uses environment variables for secure configuration:
+- `VITE_GEMINI_API_KEY` for frontend/AI access,
+- `MONGODB_URI` and `MONGODB_DB_NAME` for the backend database,
+- optional local fallback behavior when MongoDB is unavailable.
 
 ---
 
-## 7. Installation & Deployment
+## 6. Included Files and Components
+This project includes the following deliverables:
 
-### Prerequisites
-- Node.js v18+
-- npm
-- Python 3.10+
-- pip
+### Root-Level Files
+- `.env.example` — environment variable template,
+- `package.json` — root scripts and dependency automation,
+- `README.md` — general project documentation,
+- `PROJECT_DESCRIPTION.md` and `PROJECT_DESCRIPTION.pdf` — detailed submission documentation,
+- `scripts/md_to_pdf.py` — PDF generator for the markdown description.
 
-### Setup
-1. Install frontend and backend dependencies:
+### Backend Files
+- `backend/config.py` — environment loading and database mode selection,
+- `backend/main.py` — FastAPI application entrypoint,
+- `backend/database/connection.py` — MongoDB/SQLite connection management,
+- `backend/database/setup.py` — collection initialization and seeded demo data,
+- `backend/models/schemas.py` — Pydantic models and validation,
+- `backend/repositories/issue_repository.py` — CRUD and lifecycle methods,
+- `backend/repositories/user_repository.py` — leaderboard and point logic,
+- `backend/routers/analysis.py` — media upload AI analysis endpoint,
+- `backend/routers/issues.py` — issue management endpoints,
+- `backend/routers/users.py` — user/leaderboard endpoints,
+- `backend/services/gemini_service.py` — Gemini prompt and response service.
+
+### Frontend Files
+- `frontend/index.html` — app shell,
+- `frontend/package.json` — frontend dependencies,
+- `frontend/vite.config.js` — development proxy config,
+- `frontend/src/App.jsx` — core app structure,
+- `frontend/src/App.css` — theme and layout styling,
+- `frontend/src/index.css` — base global styles,
+- `frontend/src/main.jsx` — React application bootstrap.
+
+---
+
+## 7. Running the Project
+
+### Local Development
+1. Install all dependencies:
 ```bash
 npm run install:all
 ```
-2. Create `.env` from `.env.example` and configure:
-```env
-VITE_GEMINI_API_KEY=your_gemini_api_key
-MONGODB_URI=your_mongodb_uri
-MONGODB_DB_NAME=vibe2ship
-```
-3. Start the application:
+2. Create or update `.env` from `.env.example`.
+3. Start the app:
 ```bash
 npm run dev
 ```
 
-### Production Build
-To build the frontend for production:
+### Backend Startup
+Start the backend from the project root using:
 ```bash
-npm run build --prefix frontend
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --log-level info
+```
+
+### API Documentation
+The backend exposes OpenAPI docs at:
+```text
+http://127.0.0.1:8000/docs
 ```
 
 ---
 
-## 8. Deployment Considerations
-- Use a managed MongoDB cluster or Atlas database for persistence.
-- Host the backend on services like **Railway**, **Fly.io**, or **Heroku**.
-- Serve the frontend from **Vercel**, **Netlify**, or **Firebase Hosting**.
-- Ensure the Gemini API key is stored securely in environment variables.
+## 8. Future Enhancements
+Potential next steps for the project include:
+- adding user authentication and role-based access control,
+- storing and serving media files in cloud storage,
+- improving AI prompt robustness with feedback loops,
+- adding an admin panel for department dashboards,
+- enabling real-time notifications for issue updates.
 
 ---
 
-## 9. Project Impact
-This solution delivers:
-- faster and more reliable civic issue reporting,
-- trust through community verification,
-- transparency with ticket history and audit proof,
-- operational efficiency for field crews,
-- predictive guidance to prevent future hazards,
+## 9. Why This Solution Matters
+Community Hero is designed to make civic issue reporting:
+- faster to submit,
+- easier to verify,
+- more accountable,
+- more useful for municipal response teams,
+- more engaging for residents.
+
+It also demonstrates a practical AI-enabled civic workflow with real-world applications for local infrastructure and community resilience.
+
 - community engagement through gamified points and badges.
 
 ---

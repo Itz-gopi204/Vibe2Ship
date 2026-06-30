@@ -2,6 +2,13 @@ import React, { createContext, useState, useEffect } from 'react';
 
 export const IssueContext = createContext();
 
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = rawApiBaseUrl.replace(/\/+$/, '');
+const apiFetch = (path, options = {}) => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return fetch(`${API_BASE_URL}${normalizedPath}`, options);
+};
+
 const SEED_ISSUES = [
   {
     id: 'issue-1',
@@ -114,17 +121,17 @@ export const IssueProvider = ({ children }) => {
   // Sync with Backend
   const syncWithBackend = async () => {
     try {
-      const resIssues = await fetch('/api/issues');
+      const resIssues = await apiFetch('/api/issues');
       if (!resIssues.ok) throw new Error('API issue fetch failed');
       const dataIssues = await resIssues.json();
       setIssues(dataIssues);
 
-      const resLeader = await fetch('/api/leaderboard');
+      const resLeader = await apiFetch('/api/leaderboard');
       if (!resLeader.ok) throw new Error('API leaderboard fetch failed');
       const dataLeader = await resLeader.json();
       setLeaderboard(dataLeader);
 
-      const resProfile = await fetch('/api/profile');
+      const resProfile = await apiFetch('/api/profile');
       if (!resProfile.ok) throw new Error('API profile fetch failed');
       const dataProfile = await resProfile.json();
       setCurrentUser(dataProfile);
@@ -166,7 +173,7 @@ export const IssueProvider = ({ children }) => {
   const addIssue = async (newIssue) => {
     if (isBackendOnline) {
       try {
-        const response = await fetch('/api/issues', {
+        const response = await apiFetch('/api/issues', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

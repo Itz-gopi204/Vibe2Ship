@@ -149,6 +149,21 @@ npm run dev
 - Backend API will start at [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - Swagger API Docs will be available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
+### 4.1 Vercel Deployment and Backend Connection
+For Vercel production, set the frontend environment variable:
+```env
+VITE_API_BASE_URL=https://vibe2ship.onrender.com
+```
+This will make the frontend send all backend requests to your Render app.
+
+In Vercel, configure the environment variable under **Project Settings > Environment Variables** with the same name.
+
+Important:
+- Do not include a trailing slash in `VITE_API_BASE_URL`.
+- Set this variable for **Production** and **Preview** environments.
+
+If you deploy locally or without `VITE_API_BASE_URL`, the frontend will continue to use the local development proxy and `/api` paths.
+
 ---
 
 ## 🌐 API Endpoint Specifications
